@@ -24,11 +24,7 @@ cd nvidia-checker
 bash
 npm install
 
-3. Maak een `.env` bestand en vul de benodigde variabelen in:
-env
-NEXT_PUBLIC_TEST_MODE=false
-
-4. Start de development server:
+3. Start de development server:
 bash
 npm run dev
 
