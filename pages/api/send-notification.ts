@@ -5,7 +5,7 @@ type NotificationType = 'availability' | 'status' | 'startup' | 'error'
 interface NotificationRequest {
     message: string
     url?: string | null
-    type: NotificationType
+    type?: NotificationType
 }
 
 export default async function handler(
@@ -16,23 +16,28 @@ export default async function handler(
         return res.status(405).json({ message: 'Method not allowed' })
     }
 
-    const { message, url, type } = req.body as NotificationRequest
+    const { message, url, type = 'status' } = req.body as NotificationRequest
 
     try {
-        // Haal bot configuratie op uit environment variables
-        const token = process.env.TELEGRAM_BOT_TOKEN
-        const chatId = process.env.TELEGRAM_CHAT_ID
-
-        if (!token || !chatId) {
-            throw new Error('Telegram configuration missing')
-        }
-
-        // Check of de bot enabled is in localStorage
+        // Haal configuratie uit cookies
+        const token = req.cookies['telegram_token']
+        const chatId = req.cookies['telegram_chat_id']
         const isEnabled = req.cookies['telegram_enabled'] === 'true'
+
+        // Als Telegram niet is ingeschakeld, return success maar stuur geen bericht
         if (!isEnabled) {
             return res.status(200).json({ 
-                success: false, 
+                success: true, 
                 message: 'Telegram notifications are disabled' 
+            })
+        }
+
+        // Als configuratie mist terwijl notifications enabled zijn
+        if (!token || !chatId) {
+            console.warn('Telegram configuration incomplete but notifications enabled')
+            return res.status(200).json({ 
+                success: false, 
+                message: 'Telegram configuration incomplete' 
             })
         }
 
@@ -46,11 +51,11 @@ export default async function handler(
             case 'status':
                 formattedMessage = `ℹ️ ${message}`
                 break
-            case 'startup':
-                formattedMessage = `🟢 ${message}`
-                break
             case 'error':
                 formattedMessage = `❌ ${message}`
+                break
+            case 'startup':
+                formattedMessage = `🟢 ${message}`
                 break
         }
 
@@ -59,6 +64,7 @@ export default async function handler(
             formattedMessage += `\n\n${url}`
         }
 
+        // Verstuur naar Telegram
         const response = await fetch(
             `https://api.telegram.org/bot${token}/sendMessage`,
             {
@@ -75,12 +81,15 @@ export default async function handler(
         )
 
         if (!response.ok) {
-            throw new Error('Failed to send Telegram message')
+            throw new Error(`Telegram API error: ${response.status}`)
         }
 
-        res.status(200).json({ success: true })
+        return res.status(200).json({ success: true })
     } catch (error) {
         console.error('Error sending notification:', error)
-        res.status(500).json({ success: false, error: 'Failed to send notification' })
+        return res.status(500).json({ 
+            success: false, 
+            error: 'Failed to send notification' 
+        })
     }
 } 

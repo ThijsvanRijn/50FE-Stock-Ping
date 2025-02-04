@@ -14,7 +14,8 @@ export default function Home() {
             },
             body: JSON.stringify({
                 message: '🟢 NVIDIA Checker is gestart en actief',
-                url: null
+                url: null,
+                type: 'startup'
             })
         }).catch(err => console.error('Error sending startup notification:', err));
     }, []); // Leeg dependency array -> runt alleen bij mount

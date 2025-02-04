@@ -39,14 +39,57 @@ export function TelegramCard() {
         }
     }, [])
 
-    const handleSave = () => {
+    const handleSave = async () => {
         if (token && chatId) {
-            localStorage.setItem("telegram_token", token)
-            localStorage.setItem("telegram_chat_id", chatId)
-            localStorage.setItem("telegram_enabled", "true")
-            setIsConfigured(true)
-            setIsEnabled(true)
-            setShowConfig(false)
+            try {
+                // Test de configuratie eerst
+                const testResponse = await fetch(
+                    `https://api.telegram.org/bot${token}/sendMessage`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            chat_id: chatId,
+                            text: '🔄 NVIDIA Checker is verbonden'
+                        })
+                    }
+                );
+
+                if (!testResponse.ok) {
+                    throw new Error('Invalid token or chat ID');
+                }
+
+                // Als de test slaagt, sla de configuratie op
+                localStorage.setItem("telegram_token", token);
+                localStorage.setItem("telegram_chat_id", chatId);
+                localStorage.setItem("telegram_enabled", "true");
+                
+                // Zet cookies
+                document.cookie = `telegram_token=${token}; path=/`;
+                document.cookie = `telegram_chat_id=${chatId}; path=/`;
+                document.cookie = `telegram_enabled=true; path=/`;
+                
+                setIsConfigured(true);
+                setIsEnabled(true);
+                setShowConfig(false);
+
+                // Stuur bevestigingsbericht via de API
+                await fetch('/api/send-notification', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: 'Telegram notificaties zijn succesvol geconfigureerd',
+                        type: 'startup'
+                    })
+                });
+            } catch (error) {
+                console.error('Error configuring Telegram:', error);
+                alert('Ongeldige bot token of chat ID. Controleer de gegevens en probeer opnieuw.');
+            }
         }
     }
 
