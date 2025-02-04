@@ -1,5 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
+const TEST_MODE = false; // Zet op true om test scenarios te activeren
+
 const TEST_SCENARIOS = {
     AVAILABLE_BOTH: { hour: 11, minute: 17 },      // Beschikbaar bij beide
     AVAILABLE_RETAILER: { hour: 11, minute: 18 },  // Alleen Proshop

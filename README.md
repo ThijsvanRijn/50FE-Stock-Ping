@@ -1,6 +1,8 @@
 # NVIDIA RTX 5090 FE Checker
 
-Een real-time voorraad checker voor de NVIDIA RTX 5090 Founders Edition.
+Een geavanceerde real-time voorraad checker voor de NVIDIA RTX 5090 Founders Edition. Deze applicatie monitort continu verschillende officiële NVIDIA bronnen om de beschikbaarheid van de grafische kaart te controleren. Het systeem checkt zowel de NVIDIA Partner API, Direct Store, als de Marketplace en kan automatisch product pagina's openen zodra er voorraad beschikbaar is.
+
+De checker is ontworpen om betrouwbaar en snel te zijn, met ingebouwde error handling, automatische recovery, en een cache systeem om API limieten te respecteren. Het biedt real-time status updates via de interface en kan configureerd worden om notificaties te sturen via browser meldingen en Telegram.
 
 ## Functies
 
@@ -37,7 +39,7 @@ npm start
 
 ## Test Mode
 
-Voor het testen van verschillende scenarios, zet `NEXT_PUBLIC_TEST_MODE=true` in je `.env` bestand.
+Voor het testen van de verschillende scenarios, ga naar `pages/api/check-availability.ts` en zet de `TEST_MODE` constante op `true`:
 
 Test tijden:
 - 11:17 - Beschikbaar bij beide (Partner + Direct)

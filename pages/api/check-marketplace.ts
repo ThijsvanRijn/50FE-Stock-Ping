@@ -9,6 +9,8 @@ const TEST_SCENARIOS = {
 
 const TEST_TIMES = Object.values(TEST_SCENARIOS);
 
+const TEST_MODE = false; // Zet op true om test scenarios te activeren
+
 interface MarketplaceResponse {
     isAvailable: boolean;
     url?: string;
@@ -20,7 +22,7 @@ export default async function handler(
     res: NextApiResponse<MarketplaceResponse>
 ) {
     // Test mode logica
-    if (process.env.NEXT_PUBLIC_TEST_MODE === 'true') {
+    if (TEST_MODE) {
         const now = new Date();
         const currentTime = {
             hour: now.getHours(),
