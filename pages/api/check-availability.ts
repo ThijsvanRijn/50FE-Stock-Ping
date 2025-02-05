@@ -39,7 +39,7 @@ const MIN_INTERVAL = 15000; // 15 seconden
 const NVIDIA_URLS = {
     BASE: 'https://store.nvidia.com/nl-nl/geforce/store/',
     API_PARTNER: 'https://api.store.nvidia.com/partner/v1/feinventory?skus=NVGFT590&locale=nl-nl',
-    API_DIRECT: 'https://api.store.nvidia.com/partner/v1/feinventory?status=1&skus=PROGFTNV590&locale=NL'
+    API_DIRECT: 'https://api.store.nvidia.com/partner/v1/feinventory?status=1&skus=PROGFTNV590,5090FEPROSHOP,PROSHOP5090FE&locale=NL'
 } as const;
 
 const ERROR_MESSAGES = {
@@ -65,11 +65,15 @@ interface PartnerApiResponse {
     }>;
 }
 
+// First add the interface for the listMap item
+interface ListMapItem {
+    is_active: string;
+    product_url: string;
+}
+
+// Then update the DirectApiResponse interface
 interface DirectApiResponse {
-    listMap: Array<{
-        is_active: string;
-        product_url: string;
-    }>;
+    listMap: ListMapItem[];
 }
 
 const RETAILER_URLS = {
@@ -96,9 +100,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 return res.status(200).json({
                     isAvailable: true,
                     retailers: [{
-                        name: "Nvidia Direct",
-                        url: "https://store.nvidia.com/nl-nl/geforce/store/gpu/?page=1&limit=9&locale=nl-nl&category=GPU&gpu=RTX%204090"
-                    }]
+                        name: "NVIDIA Direct",
+                        url: RETAILER_URLS.NVIDIA_DIRECT
+                    }],
+                    partnerApiStatus: true,
+                    directApiStatus: true
                 });
             }
 
@@ -225,10 +231,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             isAvailable = true;
         }
 
-        if (directData?.listMap?.[0]?.product_url) {
+        if (directData?.listMap?.some((item: ListMapItem) => item.is_active === "true" && item.product_url)) {
             retailers.push({
-                name: "NVIDIA",
-                url: directData.listMap[0].product_url
+                name: "NVIDIA Direct",
+                url: directData.listMap.find((item: ListMapItem) => item.is_active === "true")?.product_url || NVIDIA_URLS.BASE
             });
             isAvailable = true;
         }
